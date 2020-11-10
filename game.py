@@ -1,7 +1,7 @@
 import math
 import time
 
-from player import HumanPlayer, RandomPlayer
+from player import HumanPlayer, RandomPlayer, AIPlayer
 
 BOARD_SIZE = 3
 
@@ -28,20 +28,25 @@ class Game():
             self.board[coord] = letter
             if self.checkWinner(coord, letter):
                 self.winner = letter
-                print("winner is: ", self.winner)
+                # print("winner is: ", self.winner)
             return True
         return False
+    
+    def undoMove(self, coord, letter):
+        if self.checkWinner(coord, letter):
+            self.winner = None
+        self.board[coord] = str(coord)
     
     def checkWinner(self, coord, letter):
         rowIndex = math.floor(coord/BOARD_SIZE)
         row = self.board[rowIndex*BOARD_SIZE:(rowIndex+1)*BOARD_SIZE]
-        print("row: ", row)
+        # print("row: ", row)
         if all([c == letter for c in row]):
             return True
         
         colIndex = coord % BOARD_SIZE
         col = [self.board[colIndex+(i*BOARD_SIZE)] for i in range(BOARD_SIZE)]
-        print("col: ", col)
+        # print("col: ", col)
         if all([c == letter for c in col]):
             return True
         
@@ -61,6 +66,12 @@ class Game():
             if isInt(self.board[i]):
                 coords.append(i)
         return coords
+    
+    def isBoardEmpty(self):
+        return len(self.getAvailableCoords()) == int(math.pow(BOARD_SIZE, 2))
+    
+    def getCornerCoords(self):
+        return [0, BOARD_SIZE-1, BOARD_SIZE*(BOARD_SIZE-1), int(math.pow(BOARD_SIZE, 2))-1]
 
 def play(game, playerX, playerO):
     game.printBoard()
@@ -80,7 +91,7 @@ def play(game, playerX, playerO):
         letter = "O" if letter == "X" else "X"
         time.sleep(0.5)
         
-    
+    print("Winner is: ", game.winner)
     print("Game Over")
     if (game.winner == None):
         print("It's a tie!")
@@ -93,7 +104,7 @@ def isInt(a):
         return False
     
 if __name__ == "__main__":
-    playerX = RandomPlayer("X")
-    playerO = RandomPlayer("O")
+    playerX = AIPlayer("X")
+    playerO = AIPlayer("O")
     g = Game()
     play(g, playerX, playerO)
