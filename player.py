@@ -40,60 +40,62 @@ class AIPlayer(Player):
 
         if game.isBoardEmpty():
             # place in the corners
-            moveCoord = random.choice(game.getCornerCoords())
+            # moveCoord = random.choice(game.getCornerCoords())
+            coords = game.getAvailableCoords()
+            moveCoord = random.choice(coords)
         else:
             # minimax
-            # moveCoord = (self.minimax(game, len(game.getAvailableCoords()), True))[1]
+            depth = 5 #len(game.getAvailableCoords())
+            score = (self.minimax(game, depth, -math.inf, math.inf, True))
+            print("score: ", score)
+            moveCoord = score["position"]
+            # moveCoord = 1
             print("moveCoord: ",moveCoord)
 
         game.makeMove(moveCoord, self.letter)
-    
-    def minimax(self, gameState, depth, isMaxPlayer):
-        return 1
 
 
-    def minimax1(self, gameState, depth, isMaxPlayer):
-        # print("minimax, depth:", depth)
+    def minimax(self, gameState, depth, alpha, beta, isMaxPlayer):
         maxPlayer = self.letter
         minPlayer = "X" if maxPlayer == "O" else "O"
 
-        if depth == 0:
+        if depth == 0 or gameState.winner != None:
             # return evaluation, -1 if minPlayer wins, +1 if maxPlayer wins, and 0 if no wins
             if gameState.winner == maxPlayer:
-                return [1, -1]
+                return {"score": 1 * (len(gameState.getAvailableCoords()) + 1), "position": None}
             elif gameState.winner == minPlayer:
-                return [-1, -1]
+                return {"score": -1 * (len(gameState.getAvailableCoords()) + 1), "position": None}
             else:
-                return [0, -1]
+                return {"score": 0, "position": None}
         
         if isMaxPlayer:
-            maxEval = -1<<31
-            maxChild = -1
-            for child in gameState.getAvailableCoords():
-                # play the state and check minimax algo
-                gameState.makeMove(child, maxPlayer)
-                eval = (self.minimax1(gameState, depth-1, False))[0]
-                # print("eval: ",eval)
-                gameState.undoMove(child, maxPlayer)
-                print("maxEval: ",maxEval,"eval: ",eval)
-                if eval > maxEval:
-                    print("updateVals")
-                    maxChild = child
-                maxEval = max(maxEval, eval)
-            # print("max: ", maxEval, maxChild)
-            return [maxEval, maxChild]
+            bestScore = {"score": -math.inf, "position": None}
+            player = maxPlayer
         else:
-            minEval = 1<<31
-            minChild = -2
-            for child in gameState.getAvailableCoords():
-                # play the state and check minimax algo
-                gameState.makeMove(child, minPlayer)
-                eval = (self.minimax1(gameState, depth-1, True))[0]
-                # print("eval: ",eval)
-                gameState.undoMove(child, minPlayer)
-                if eval < minEval:
-                    minChild = child
-                minEval = min(minEval, eval)
-            # print("min: ", minEval, minChild)
-            return [minEval, minChild]
+            bestScore = {"score": math.inf, "position": None}
+            player = minPlayer
+        
+        for posChild in gameState.getAvailableCoords():
+            gameState.makeMove(posChild, player)
+            eval = self.minimax(gameState, depth-1, alpha, beta, not isMaxPlayer)
+
+            gameState.undoMove(posChild, player)
+            # print("oka, ", eval)
+            # print(eval['position'], posChild)
+            eval['position'] = posChild
+
+            if isMaxPlayer:
+                if eval["score"] > bestScore["score"]:
+                    bestScore = eval
+                alpha = max(alpha, eval["score"])
+                if beta <= alpha:
+                    break
+            else:
+                if eval["score"] < bestScore["score"]:
+                    bestScore = eval
+                beta = min(beta, eval["score"])
+                if beta <= alpha:
+                    break
+
+        return bestScore 
         

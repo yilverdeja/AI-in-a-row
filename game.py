@@ -3,7 +3,7 @@ import time
 
 from player import HumanPlayer, RandomPlayer, AIPlayer
 
-BOARD_SIZE = 3
+BOARD_SIZE = 4
 
 diag1 = [(BOARD_SIZE-1)*i for i in range(1, BOARD_SIZE+1)]
 
