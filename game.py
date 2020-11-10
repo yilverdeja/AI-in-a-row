@@ -104,7 +104,7 @@ def isInt(a):
         return False
     
 if __name__ == "__main__":
-    playerX = AIPlayer("X")
+    playerX = HumanPlayer("X")
     playerO = AIPlayer("O")
     g = Game()
     play(g, playerX, playerO)

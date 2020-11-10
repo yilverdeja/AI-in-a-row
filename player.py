@@ -43,17 +43,21 @@ class AIPlayer(Player):
             moveCoord = random.choice(game.getCornerCoords())
         else:
             # minimax
-            moveCoord = (self.minimax(game, 3, True))[1]
+            # moveCoord = (self.minimax(game, len(game.getAvailableCoords()), True))[1]
             print("moveCoord: ",moveCoord)
 
         game.makeMove(moveCoord, self.letter)
     
     def minimax(self, gameState, depth, isMaxPlayer):
-        print("minimax, depth:", depth)
+        return 1
+
+
+    def minimax1(self, gameState, depth, isMaxPlayer):
+        # print("minimax, depth:", depth)
         maxPlayer = self.letter
         minPlayer = "X" if maxPlayer == "O" else "O"
 
-        if depth == 0 or gameState.getAvailableCoords() == 0 or gameState.winner != None:
+        if depth == 0:
             # return evaluation, -1 if minPlayer wins, +1 if maxPlayer wins, and 0 if no wins
             if gameState.winner == maxPlayer:
                 return [1, -1]
@@ -68,26 +72,28 @@ class AIPlayer(Player):
             for child in gameState.getAvailableCoords():
                 # play the state and check minimax algo
                 gameState.makeMove(child, maxPlayer)
-                eval = self.minimax(gameState, depth-1, False)
+                eval = (self.minimax1(gameState, depth-1, False))[0]
                 # print("eval: ",eval)
                 gameState.undoMove(child, maxPlayer)
-                if eval[0] > maxEval:
+                print("maxEval: ",maxEval,"eval: ",eval)
+                if eval > maxEval:
+                    print("updateVals")
                     maxChild = child
-                maxEval = max(maxEval, eval[0])
+                maxEval = max(maxEval, eval)
             # print("max: ", maxEval, maxChild)
             return [maxEval, maxChild]
         else:
             minEval = 1<<31
-            minChild = -1
+            minChild = -2
             for child in gameState.getAvailableCoords():
                 # play the state and check minimax algo
                 gameState.makeMove(child, minPlayer)
-                eval = self.minimax(gameState, depth-1, True)
+                eval = (self.minimax1(gameState, depth-1, True))[0]
                 # print("eval: ",eval)
                 gameState.undoMove(child, minPlayer)
-                if eval[0] < minEval:
+                if eval < minEval:
                     minChild = child
-                minEval = min(minEval, eval[0])
+                minEval = min(minEval, eval)
             # print("min: ", minEval, minChild)
             return [minEval, minChild]
         
