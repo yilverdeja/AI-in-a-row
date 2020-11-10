@@ -45,7 +45,7 @@ class AIPlayer(Player):
             moveCoord = random.choice(coords)
         else:
             # minimax
-            depth = 5 #len(game.getAvailableCoords())
+            depth = len(game.getAvailableCoords())
             score = (self.minimax(game, depth, -math.inf, math.inf, True))
             print("score: ", score)
             moveCoord = score["position"]
