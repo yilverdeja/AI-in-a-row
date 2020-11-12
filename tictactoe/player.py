@@ -81,8 +81,6 @@ class AIPlayer(Player):
             eval = self.minimax(gameState, depth-1, alpha, beta, not isMaxPlayer)
 
             gameState.undoMove(posChild, player)
-            # print("oka, ", eval)
-            # print(eval['position'], posChild)
             eval['position'] = posChild
 
             if isMaxPlayer:
