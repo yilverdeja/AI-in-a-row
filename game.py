@@ -3,12 +3,14 @@ import time
 
 from player import HumanPlayer, RandomPlayer, AIPlayer
 
-BOARD_SIZE = 3
+BOARD_SIZE = 5
 
 diag1 = [(BOARD_SIZE-1)*i for i in range(1, BOARD_SIZE+1)]
 
 diag2Diff = int((math.pow(BOARD_SIZE, 2) - 1)/(BOARD_SIZE-1))
 diag2 = [diag2Diff*i for i in range(BOARD_SIZE)]
+
+coordPlays = {"X": [], "O": []}
 
 class Game():
     def __init__(self):
@@ -28,7 +30,6 @@ class Game():
             self.board[coord] = letter
             if self.checkWinner(coord, letter):
                 self.winner = letter
-                # print("winner is: ", self.winner)
             return True
         return False
     
@@ -40,13 +41,11 @@ class Game():
     def checkWinner(self, coord, letter):
         rowIndex = math.floor(coord/BOARD_SIZE)
         row = self.board[rowIndex*BOARD_SIZE:(rowIndex+1)*BOARD_SIZE]
-        # print("row: ", row)
         if all([c == letter for c in row]):
             return True
         
         colIndex = coord % BOARD_SIZE
         col = [self.board[colIndex+(i*BOARD_SIZE)] for i in range(BOARD_SIZE)]
-        # print("col: ", col)
         if all([c == letter for c in col]):
             return True
         
@@ -67,6 +66,37 @@ class Game():
                 coords.append(i)
         return coords
     
+    def getAvailableCoordsInProximity(self):
+        coords = set()
+        for i in range(int(math.pow(BOARD_SIZE, 2))):
+            if not isInt(self.board[i]):
+                coords.update(self.getSideCoords(i))
+        
+        return list(coords)
+    
+    def getSideCoords(self, coord):
+        coords = []
+
+        coords.append(coord + BOARD_SIZE)
+        coords.append(coord - BOARD_SIZE)
+        if coord % BOARD_SIZE != 0:
+            coords.append(coord - 1)
+            coords.append(coord + BOARD_SIZE - 1)
+            coords.append(coord - BOARD_SIZE - 1)
+        if (coord + 1) % BOARD_SIZE != 0:
+            coords.append(coord + 1)
+            coords.append(coord + BOARD_SIZE + 1)
+            coords.append(coord - BOARD_SIZE + 1)
+        
+        finalCoords = []
+        for c in coords:
+            
+            if c >= 0 and c < int(math.pow(BOARD_SIZE, 2)) and isInt(self.board[c]):
+                finalCoords.append(c)
+        
+        # print("Side Coords: ", finalCoords)
+        return finalCoords
+    
     def isBoardEmpty(self):
         return len(self.getAvailableCoords()) == int(math.pow(BOARD_SIZE, 2))
     
@@ -80,15 +110,23 @@ def play(game, playerX, playerO):
 
     while game.winner == None and len(game.getAvailableCoords()) > 0:
         if letter == "X":
-            playerX.makeMove(game)
+            coord = playerX.makeMove(game)
         else:
-            playerO.makeMove(game)
+            coord = playerO.makeMove(game)
+        
+        
+        coordPlays[letter].append(coord)
+        game.getSideCoords(coord)
+
+        print(game.getAvailableCoordsInProximity())
 
         print("Made move for: ", letter)
         game.printBoard()
     
         # swap player
         letter = "O" if letter == "X" else "X"
+
+        # Wait
         time.sleep(0.5)
         
     print("Winner is: ", game.winner)
@@ -96,6 +134,7 @@ def play(game, playerX, playerO):
     if (game.winner == None):
         print("It's a tie!")
 
+# Checks if the value is an integer
 def isInt(a):
     try:
         int(a)

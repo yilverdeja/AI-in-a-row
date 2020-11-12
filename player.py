@@ -19,6 +19,7 @@ class HumanPlayer(Player):
             if (moveCoord in coords):
                 break
         game.makeMove(moveCoord, self.letter)
+        return moveCoord
 
 class RandomPlayer(Player):
     def __init__(self, letter):
@@ -28,6 +29,7 @@ class RandomPlayer(Player):
         coords = game.getAvailableCoords()
         moveCoord = random.choice(coords)
         game.makeMove(moveCoord, self.letter)
+        return moveCoord
 
 class AIPlayer(Player):
     def __init__(self, letter):
@@ -35,8 +37,7 @@ class AIPlayer(Player):
     
     def makeMove(self, game):
         # minimax + alpha beta pruning
-        # minimizingPlayer = "X" if self.letter == "O" else "X"
-        print("AI Move")
+        print("AI Moves")
 
         if game.isBoardEmpty():
             # place in the corners
@@ -45,14 +46,14 @@ class AIPlayer(Player):
             moveCoord = random.choice(coords)
         else:
             # minimax
-            depth = len(game.getAvailableCoords())
+            depth = len(game.getAvailableCoordsInProximity())
             score = (self.minimax(game, depth, -math.inf, math.inf, True))
-            print("score: ", score)
+            # print("score: ", score)
             moveCoord = score["position"]
-            # moveCoord = 1
-            print("moveCoord: ",moveCoord)
+            # print("moveCoord: ",moveCoord)
 
         game.makeMove(moveCoord, self.letter)
+        return moveCoord
 
 
     def minimax(self, gameState, depth, alpha, beta, isMaxPlayer):
@@ -75,7 +76,7 @@ class AIPlayer(Player):
             bestScore = {"score": math.inf, "position": None}
             player = minPlayer
         
-        for posChild in gameState.getAvailableCoords():
+        for posChild in gameState.getAvailableCoordsInProximity():
             gameState.makeMove(posChild, player)
             eval = self.minimax(gameState, depth-1, alpha, beta, not isMaxPlayer)
 
