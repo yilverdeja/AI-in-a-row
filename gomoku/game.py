@@ -7,14 +7,15 @@ BOARD_SIZE = 15
 
 # Shows all open "in a row moves". Every dictionary holds in array of tuple arrays i.e [[(), ()], [(), (), ()]]
 # c# is a closed combo which means one side is blocked and you only need one play to block it completely
-xMoves = {"4": [], "c4": [], "3": [], "c3": [], "2": [], "c2": [], "blocked": []}
-oMoves = {"4": [], "c4": [], "3": [], "c3": [], "2": [], "c2": [], "blocked": []}
+movesDict = {"4": [], "c4": [], "3": [], "c3": [], "2": [], "c2": [], "blocked": []}
 
 class Game():
 
     def __init__(self):
         self.board = self.makeBoard()
         self.moves = {"X": [], "O": []}
+        self.xMoves = movesDict.copy()
+        self.yMoves = movesDict.copy()
         self.winner = None
     
     # Makes the 15x15 board to play Gomoku
@@ -115,7 +116,15 @@ class Game():
 
     def getDirection(self, t1, t2):
         # https://www.geeksforgeeks.org/python-how-to-get-subtraction-of-tuples/
-        return tuple(map(operator.sub, t1, t2))
+        direction = tuple(map(operator.sub, t1, t2))
+        if direction[0] != 0 or abs(direction[0]) == abs(direction[1]):
+            direction = tuple(int(i/abs(direction[0])) for i in direction)
+        elif direction[1] != 0:
+            direction = tuple(int(i/abs(direction[1])) for i in direction)
+        return direction
+
+    def updateXMoves(self, pos):
+        pass
 
     def updateOMoves(self, pos):
         pass
@@ -124,8 +133,10 @@ class Game():
         moveSet = set()
         if dist == 1:
             vectors = [(1, 0), (0, 1), (1,1), (1,-1)]
-        else:
+        elif dist == 2:
             vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 1), (2, 0), (2, -1), (2, -2), (1, -2), (0, -2), (-1, -2), (-2, -2)]
+        else:
+            raise Exception("Dist must be either 1 or 2!")
         
         allMoves = self.moves["X"] + self.moves["O"]
 

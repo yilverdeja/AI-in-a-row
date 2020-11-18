@@ -95,27 +95,31 @@ class TestGame(unittest.TestCase):
         self.testGame.undoMove((0, 0), "X")
         self.assertFalse(self.testGame.isBoardFull())
     
+    # fills coord 0,0 and determines how many positions are left
     def test_numPositionsLeft(self):
         amount = int(math.pow(game.BOARD_SIZE, 2)) - 1
         coord = (0, 0)
         self.testGame.makeMove(coord, "X")
         self.assertEqual(amount, self.testGame.getNumPosLeft())
     
-    def test_potentialMovesAvailableAtDist1(self):
+    # fills coord 0,0 and determines all possible plays 1 square away
+    def test_potentialMovesAvailableAtDist1_1(self):
         movesAvailable = 3
         dist = 1
         coord = (0, 0)
         self.testGame.makeMove(coord, "X")
         self.assertTrue(len(self.testGame.getPotentialMoves(dist)) == movesAvailable)
     
-    def test_potentialMovesAvailableAtDist2(self):
+    # fills coord 0,0 and 0,1 and determines all possible plays 1 square away
+    def test_potentialMovesAvailableAtDist1_2(self):
         movesAvailable = 4
         dist = 1
         self.testGame.makeMove((0, 0), "X")
         self.testGame.makeMove((0, 1), "X")
         self.assertTrue(len(self.testGame.getPotentialMoves(dist)) == movesAvailable)
     
-    def test_potentialMovesAvailableAtDist3(self):
+    # fills coord 0,0; 0,1; and 6,6 and determines all possible plays 1 square away
+    def test_potentialMovesAvailableAtDist1_3(self):
         movesAvailable = 12
         dist = 1
         self.testGame.makeMove((0, 0), "X")
@@ -123,8 +127,26 @@ class TestGame(unittest.TestCase):
         self.testGame.makeMove((6, 6), "X")
         self.assertTrue(len(self.testGame.getPotentialMoves(dist)) == movesAvailable)
     
-    # test get direction
-
+    # fills coord 0,0; 0,1; and 6,6 and determines all possible plays 2 squares away
+    def test_potentialMovesAvailableAtDist2_1(self):
+        movesAvailable = 34
+        dist = 2
+        self.testGame.makeMove((0, 0), "X")
+        self.testGame.makeMove((0, 1), "X")
+        self.testGame.makeMove((6, 6), "X")
+        self.assertTrue(len(self.testGame.getPotentialMoves(dist)) == movesAvailable)
+    
+    # gets direction one square away
+    def test_getDirection1(self):
+        self.assertEqual(self.testGame.getDirection((0,1),(0,2)), (0, -1))
+    
+    # gets direction two squares away
+    def test_getDirection2(self):
+        self.assertEqual(self.testGame.getDirection((0,1),(0,3)), (0, -1))
+    
+    # gets direction two squares away diagonally in different direction
+    def test_getDirection3(self):
+        self.assertEqual(self.testGame.getDirection((3,3),(1,1)), (1, 1))
 
 
 
