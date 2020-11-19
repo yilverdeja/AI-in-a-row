@@ -33,6 +33,21 @@ class TestGame(unittest.TestCase):
         invalidMove4 = self.testGame.makeMove((0, game.BOARD_SIZE), "X")
         self.assertFalse(invalidMove1 or invalidMove2 or invalidMove3 or invalidMove4)
     
+    # tests if moves are sorted
+    def test_makeMove5(self):
+        self.testGame.makeMove((1,2), "X")
+        self.testGame.makeMove((3,1), "X")
+        self.testGame.makeMove((5,6), "X")
+        self.testGame.makeMove((4,3), "X")
+        self.testGame.makeMove((1,1), "X")
+        self.testGame.makeMove((5,4), "X")
+        self.assertEqual(self.testGame.moves["X"][0], (1,1))
+        self.assertEqual(self.testGame.moves["X"][1], (1,2))
+        self.assertEqual(self.testGame.moves["X"][2], (3,1))
+        self.assertEqual(self.testGame.moves["X"][3], (4,3))
+        self.assertEqual(self.testGame.moves["X"][4], (5,4))
+        self.assertEqual(self.testGame.moves["X"][5], (5,6))
+    
     # undoes "X" at coord 0, 0 after it's played there
     def test_undoMove1(self):
         coord = (0, 0)
@@ -129,7 +144,8 @@ class TestGame(unittest.TestCase):
     
     # fills coord 0,0; 0,1; and 6,6 and determines all possible plays 2 squares away
     def test_potentialMovesAvailableAtDist2_1(self):
-        movesAvailable = 34
+        # movesAvailable = 34
+        movesAvailable = 25
         dist = 2
         self.testGame.makeMove((0, 0), "X")
         self.testGame.makeMove((0, 1), "X")
@@ -147,8 +163,18 @@ class TestGame(unittest.TestCase):
     # gets direction two squares away diagonally in different direction
     def test_getDirection3(self):
         self.assertEqual(self.testGame.getDirection((3,3),(1,1)), (1, 1))
-
-
+    
+    # gets "X"s letter score after a few moves
+    def test_getScore1(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((4, 3), "X")
+        self.testGame.makeMove((4, 4), "X")
+        self.testGame.makeMove((4, 1), "X")
+        self.testGame.makeMove((5, 2), "X")
+        self.testGame.makeMove((6, 2), "X")
+        self.testGame.makeMove((7, 2), "X")
+        score = 2 * (100) + 5 * (10) # 2 * o3 + 5 * o2 = 250
+        self.assertEqual(self.testGame.getPlayerScore("X"), score)
 
 if __name__ == "__main__":
     unittest.main()

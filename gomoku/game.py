@@ -5,17 +5,11 @@ from player import HumanPlayer, AIPlayer
 # TODO: don't hardcode in player.py
 BOARD_SIZE = 15
 
-# Shows all open "in a row moves". Every dictionary holds in array of tuple arrays i.e [[(), ()], [(), (), ()]]
-# c# is a closed combo which means one side is blocked and you only need one play to block it completely
-movesDict = {"4": [], "c4": [], "3": [], "c3": [], "2": [], "c2": [], "blocked": []}
-
 class Game():
 
     def __init__(self):
         self.board = self.makeBoard()
         self.moves = {"X": [], "O": []}
-        self.xMoves = movesDict.copy()
-        self.yMoves = movesDict.copy()
         self.winner = None
     
     # Makes the 15x15 board to play Gomoku
@@ -30,24 +24,38 @@ class Game():
                 
     # Attempts to make a move on the board
     def makeMove(self, coord, letter):
+        self.__checkIfValidLetter(letter)
+
         if self.isOutOfRange(coord): return False
         if (self.board[coord[0]][coord[1]] == " "):
             self.board[coord[0]][coord[1]] = letter
             self.moves[letter].append(coord)
+            self.__sortMoves(letter)
             # TODO: check winner?
             return True
         return False
     
     # Attempts to undo a move on the board
     def undoMove(self, coord, letter):
+        self.__checkIfValidLetter(letter)
+
         if self.isOutOfRange(coord): return False
         if (self.board[coord[0]][coord[1]] == letter):
             self.moves[letter].remove(coord)
+            # self.__sortMoves(letter) # should already be sorted
             self.board[coord[0]][coord[1]] = " "
             if self.winner != None:
                 self.winner = None
             return True
         return False
+    
+    def __checkIfValidLetter(self, letter):
+        if letter != "X" and letter != "O":
+            raise Exception("Input letter must either be X or O!")
+
+    def __sortMoves(self, letter):
+        self.__checkIfValidLetter(letter)
+        self.moves[letter].sort(key = lambda x: (x[0], x[1]))
     
     # checks if board is empty
     def isBoardEmpty(self):
@@ -61,58 +69,144 @@ class Game():
     def getNumPosLeft(self):
         return int(math.pow(BOARD_SIZE, 2)) - len(self.moves["X"]) - len(self.moves["O"])
     
+    # gets the player score on that current board
+    def getPlayerScore(self, letter):
+        self.__checkIfValidLetter(letter)
+
+        # c2, o2, c3, o3, c4, o4
+        # scoreRank = [5, 10, 25, 100, 1000, 10000]
+        scoreRank = {"c2": 5, "o2": 10, "c3": 25, "o3": 100, "c4": 1000, "o4": 10000}
+        typeRank = {"c2": 0, "o2": 0, "c3": 0, "o3": 0, "c4": 0, "o4": 0}
+
+        # totalScore
+        totalScore = 0
+
+        checkedMoves = []
+        playerMoves = self.moves[letter].copy()
+        if letter == "X":
+            enemyMoves = self.moves["O"].copy()
+        else:
+            enemyMoves = self.moves["X"].copy()
+
+        # pops the first value from completed moves and checks if it has any neighbors within completed moves. Once a neighbor is found, and looks further in it's direction. Once that's complete, it gets the length of the move and adds it to the score. Then it keeps going through neighbors until all of them have been visited. Once complete, adds that move into checkedMoves and then pops the next item inside playerMoves. Repeats until playerMoves has a length of 0
+
+        while len(playerMoves) > 0:
+            checkMove = playerMoves.pop(0)
+            print("checkmove", checkMove)
+            neighborMoves = self.getNeighbors(checkMove)
+            checkedNeighbors = set()
+            # print(checkMove, neighborMoves)
+            for neighbor in neighborMoves:
+                
+                # print(neighbor in playerMoves)
+                # print(checkMove, neighbor, playerMoves)
+                if neighbor in checkedNeighbors:
+                    continue
+
+                if neighbor in playerMoves:
+                    direction = self.getDirection(checkMove, neighbor)
+                    neighborCount = 1
+                    moveType = "o" # or "c" or maybe "b" for blocked
+
+                    # head
+                    aPos = tuple(map(operator.add, checkMove, direction))
+                    bPos = tuple(map(operator.add, aPos, direction))
+                    # print("head", aPos, bPos)
+
+                    foundFlag = aPos in checkedMoves or bPos in checkedMoves
+                    if foundFlag:
+                        print("flag found", checkMove, aPos, bPos)
+                        continue
+
+                    while aPos in playerMoves or bPos in playerMoves:
+                        checkedNeighbors.update([aPos, bPos])
+                        if aPos in playerMoves and bPos in playerMoves:
+                            # print("inc 2 head", checkMove, aPos, bPos)
+                            neighborCount = neighborCount + 2
+                        elif aPos in enemyMoves:
+                            moveType = "c"
+                            # print("escape")
+                            break
+                        else:
+                            neighborCount = neighborCount + 1
+                            # print("inc 1 head", checkMove, aPos, bPos)
+                            if bPos in enemyMoves:
+                                moveType = "c"
+                                # print("escape")
+                                break
+            
+                        aPos = tuple(map(operator.add, bPos, direction))
+                        bPos = tuple(map(operator.add, aPos, direction))
+                    
+                    # print("after head")
+                    
+                    # tail
+                    aPos = tuple(map(operator.sub, checkMove, direction))
+                    bPos = tuple(map(operator.sub, aPos, direction))
+
+                    foundFlag = aPos in checkedMoves or bPos in checkedMoves
+                    if foundFlag:
+                        # print("flag found", checkMove, aPos, bPos)
+                        continue
+
+                    while aPos in playerMoves or bPos in playerMoves:
+                        checkedNeighbors.update([aPos, bPos])
+                        if aPos in playerMoves and bPos in playerMoves:
+                            # print("inc 2 tail", checkMove, aPos, bPos)
+                            neighborCount = neighborCount + 2
+                        elif aPos in enemyMoves:
+                            moveType = "c"
+                            # print("escape")
+                            break
+                        else:
+                            neighborCount = neighborCount + 1
+                            # print("inc 1 tail", checkMove, aPos, bPos)
+                            if bPos in enemyMoves:
+                                moveType = "c"
+                                # print("escape")
+                                break
+
+                        aPos = tuple(map(operator.sub, bPos, direction))
+                        bPos = tuple(map(operator.sub, aPos, direction))
+                    
+                    # print("after tail")
+
+                    tRank = moveType + str(neighborCount)
+                    print(tRank)
+                    typeRank[tRank] = typeRank[tRank] + 1
+                    checkedNeighbors.add(neighbor)
+            
+            checkedMoves.append(checkMove)
+        print(typeRank)
+
+        for key in scoreRank:
+            score = scoreRank[key] * typeRank[key]
+            totalScore = totalScore + score
+            
+        return totalScore
+
+    # gets neighbors a distance of 2 from the coord
+    def getNeighbors(self, coord):
+        moveSet = set()
+        # vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 1), (2, 0), (2, -1), (2, -2), (1, -2), (0, -2), (-1, -2), (-2, -2)]
+        vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 0), (2, -2), (0, -2), (-2, -2)]
+        for vector in vectors:
+            head = (coord[0] + vector[0], coord[1] + vector[1])
+            tail = (coord[0] - vector[0], coord[1] - vector[1])
+            if not self.isOutOfRange(head):
+                moveSet.add(head)
+            if not self.isOutOfRange(tail):
+                moveSet.add(tail)
+        
+        return list(moveSet)
+
+    
     # def getPlayerScore(self, letter):
     #     # TODO is there a better way to simplify this
     #     if letter == "X":
     #         return 1000*len(xMoves["4"]) + 100*len(xMoves["c4"]) + 50*len(xMoves["3"]) + 25*len(xMoves["c3"]) + 10*len(xMoves["2"]) + 5*len(xMoves["c2"])
     #     elif letter == "O":
     #         return 1000*len(oMoves["4"]) + 100*len(oMoves["c4"]) + 50*len(oMoves["3"]) + 25*len(oMoves["c3"]) + 10*len(oMoves["2"]) + 5*len(oMoves["c2"])
-    
-    # # TODO
-    # def updateXMoves(self, pos):
-    #     # look through all current xMoves and check next to their rows if pos exists there. If so, then remove it from the in-a-row dic value and add it to the next one
-    #     for item in xMoves.items():
-    #         # TODO add if block into helper function to be used by updateOMoves
-    #         # TODO this currently assumes a straight line, what if there's a single break between a series i.e (0,1), (0,2), (0,4); This is basically a 3 in a row. A (0,3) can be placed to make a 4 in a row
-    #         if len(item[0]) > 0:
-    #             if item[0] == "c2":
-    #                 # [[(0, 1), (0, 2)], [(4,4), (5,4)]]
-    #                 # for first one it searches if pos is at (0,0), (0,3) or (0,4)
-    #                 # for second one it searches if pos is at (2, 4), (3, 4), (6,4), (7,4)
-    #                 # if it is, then it removes this item from c2 and adds it into c3
-                    
-    #                 # each should have at least 2 points which helps determine the direction
-    #                 for comb in item[1]:
-    #                     directionVector = self.getDirection(comb[0], comb[1])
-    #                     # get current head and tail and look one pos next to them
-    #                     # when heading to the right of the comb, add by -1*direction
-    #                     # else add by 1*direction
-    #                     head = tuple(map(operator.add, comb[0], directionVector))
-    #                     tail = tuple(map(operator.add, comb[-1], -1*directionVector))
-
-    #                     # add pos into comb, add it into c3 then remove comb from c2 item
-    #                     if head == pos:
-    #                         comb.insert(0, pos)
-    #                         xMoves["c3"].append(comb)
-    #                         item[1].remove(comb)
-    #                     elif tail == pos:
-    #                         comb.append(pos)
-    #                         xMoves["c3"].append(comb)
-    #                         item[1].remove(comb)
-                    
-    #             elif item[0] == "2":
-    #                 pass
-    #             elif item[0] == "c3":
-    #                 pass
-    #             elif item[0] == "3":
-    #                 pass
-    #             elif item[0] == "c4":
-    #                 pass
-    #             elif item[0] == "4":
-    #                 pass
-    #             else:
-    #                 raise Exception("Shouldn't arrive here!")
-    #     pass
 
     def getDirection(self, t1, t2):
         # https://www.geeksforgeeks.org/python-how-to-get-subtraction-of-tuples/
@@ -123,18 +217,15 @@ class Game():
             direction = tuple(int(i/abs(direction[1])) for i in direction)
         return direction
 
-    def updateXMoves(self, pos):
-        pass
-
-    def updateOMoves(self, pos):
-        pass
-
+    # TODO refactor with get neighbors if possible
     def getPotentialMoves(self, dist):
         moveSet = set()
         if dist == 1:
             vectors = [(1, 0), (0, 1), (1,1), (1,-1)]
         elif dist == 2:
-            vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 1), (2, 0), (2, -1), (2, -2), (1, -2), (0, -2), (-1, -2), (-2, -2)]
+            # vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 1), (2, 0), (2, -1), (2, -2), (1, -2), (0, -2), (-1, -2), (-2, -2)]
+            # should only play what's in line to each coord
+            vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 0), (2, -2), (0, -2), (-2, -2)]
         else:
             raise Exception("Dist must be either 1 or 2!")
         
@@ -166,11 +257,9 @@ def play(game, playerX, playerY):
         if letter == "X":
             pos = playerX.makeMove(game)
             game.moves["X"].append(pos)
-            game.updateXMoves(pos)
         else:
             pos = playerO.makeMove(game)
             game.moves["O"].append(pos)
-            game.updateOMoves(pos)
         
         game.printBoard()
         print(game.moves)
