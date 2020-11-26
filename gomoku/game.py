@@ -33,7 +33,9 @@ class Game():
             self.board[coord[0]][coord[1]] = letter
             self.moves[letter].append(coord)
             self.__sortMoves(letter)
-            # TODO: check winner?
+            # TODO: check winner instead of using getplayerscore?
+            if self.getPlayerScore(letter) >= SCORE_RANK["win"]:
+                self.winner = letter
             return True
         return False
     
@@ -247,8 +249,6 @@ class Game():
         if dist == 1:
             vectors = [(1, 0), (0, 1), (1,1), (1,-1)]
         elif dist == 2:
-            # vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 1), (2, 0), (2, -1), (2, -2), (1, -2), (0, -2), (-1, -2), (-2, -2)]
-            # should only play what's in line to each coord
             vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1), (2, 0), (2, -2), (0, -2), (-2, -2)]
         else:
             raise Exception("Dist must be either 1 or 2!")
@@ -280,10 +280,12 @@ def play(game, playerX, playerY):
         print("Player "+letter+" move")
         if letter == "X":
             pos = playerX.makeMove(game)
-            game.moves["X"].append(pos)
+            # game.moves["X"].append(pos)
         else:
             pos = playerO.makeMove(game)
-            game.moves["O"].append(pos)
+            # game.moves["O"].append(pos)
+        print("X score: ", game.getPlayerScore("X"))
+        print("O score: ", game.getPlayerScore("O"))
         
         game.printBoard()
         print(game.moves)

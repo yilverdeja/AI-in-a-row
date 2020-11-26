@@ -316,8 +316,20 @@ class TestGame(unittest.TestCase):
         scoreX = 1 * (game.SCORE_RANK["win"])
         self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
     
-    # test 4 in a row blocked but gap in middle (should be treated as c4 since it's still possible for a win)
+    # test win condition and if winner detected
     def test_getScore16(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "X")
+        self.assertEqual(self.testGame.winner, None)
+        self.testGame.makeMove((3, 7), "X")
+        scoreX = 1 * (game.SCORE_RANK["win"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+        self.assertTrue(self.testGame.winner, "X")
+    
+    # test 4 in a row blocked but gap in middle (should be treated as c4 since it's still possible for a win)
+    def test_getScore17(self):
         self.testGame.makeMove((3, 3), "X")
         self.testGame.makeMove((3, 4), "X")
         self.testGame.makeMove((3, 5), "X")

@@ -44,7 +44,7 @@ class AIPlayer(Player):
                 raise Exception("Something is wrong. You should be able to make a move if the board is empty...")
         else:
             # minimax
-            depth = 1
+            depth = 2
             eval = self.minimax(game, depth, -math.inf, math.inf, True)
             if game.makeMove(eval["position"], self.letter):
                 return eval["position"]
@@ -68,7 +68,7 @@ class AIPlayer(Player):
             if isMaximizing:
                 return {"score": 1*gameState.getPlayerScore(maxPlayer), "position": None}
             else:
-                return {"score": -1*gameState.getPlayerScore(minPlayer), "position": None}
+                return {"score": -10*gameState.getPlayerScore(minPlayer), "position": None}
             pass
         elif gameState.isBoardFull():
             # A tie
@@ -82,11 +82,25 @@ class AIPlayer(Player):
             bestPlay = {"score": math.inf, "position": None}
             player = minPlayer
 
-        # TODO iterate through every open pos that's a dist of 1-2 away
+        # TODO iterate through every open pos that's a dist of 2 away
+        for posChild in gameState.getPotentialMoves(2):
+            gameState.makeMove(posChild, player)
+            eval = self.minimax(gameState, depth-1, alpha, beta, not isMaximizing)
+
+            gameState.undoMove(posChild, player)
+            eval['position'] = posChild
+
+            if isMaximizing:
+                if eval["score"] > bestPlay["score"]:
+                    bestPlay = eval
+                alpha = max(alpha, eval["score"])
+                if beta <= alpha:
+                    break
+            else:
+                if eval["score"] < bestPlay["score"]:
+                    bestPlay = eval
+                beta = min(beta, eval["score"])
+                if beta <= alpha:
+                    break
 
         return bestPlay
-    
-    # heuristics that evaluate which move is the best
-    def heuristics(self):
-        # look at gomoku strategies
-        return
