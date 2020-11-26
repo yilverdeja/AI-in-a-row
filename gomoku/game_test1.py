@@ -326,6 +326,39 @@ class TestGame(unittest.TestCase):
         self.testGame.makeMove((3, 8), "O")
         scoreX = 1 * (game.SCORE_RANK["c4"])
         self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # X and O scoring is the same as plays go on
+    def test_getScoreXO1(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "O")
+        self.assertEqual(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
+        self.testGame.makeMove((4, 3), "X")
+        self.testGame.makeMove((4, 4), "O")
+        self.assertEqual(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
+        self.testGame.makeMove((5, 3), "X")
+        self.testGame.makeMove((5, 4), "O")
+        self.assertEqual(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
+        self.testGame.makeMove((6, 3), "X")
+        self.testGame.makeMove((6, 4), "O")
+        self.assertEqual(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
+        self.testGame.makeMove((7, 3), "X")
+        self.testGame.makeMove((7, 4), "O")
+        self.assertEqual(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
+    
+    def test_getScoreXO2(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "O")
+        self.testGame.makeMove((4, 3), "X")
+        self.testGame.makeMove((5, 3), "O")
+        self.assertGreater(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
+        self.testGame.makeMove((2, 3), "X")
+        self.testGame.makeMove((4, 4), "O")
+        self.testGame.makeMove((4, 2), "X")
+        self.testGame.makeMove((5, 4), "O")
+        self.assertLess(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
+        self.testGame.makeMove((2, 4), "X")
+        self.testGame.makeMove((5, 1), "O")
+        self.assertLess(self.testGame.getPlayerScore("X"), self.testGame.getPlayerScore("O"))
 
 if __name__ == "__main__":
     unittest.main()

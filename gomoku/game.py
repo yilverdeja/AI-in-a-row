@@ -111,7 +111,7 @@ class Game():
                     tailBlock = False
                     flag = False
 
-                    print(move, neighbor, direction)
+                    # print(move, neighbor, direction)
                     
                     # head search
                     head = tuple(map(operator.add, move, direction))
@@ -129,7 +129,7 @@ class Game():
                             flag = True
 
                     while head in playerMoves and not flag:
-                        print("head: ", head)
+                        # print("head: ", head)
                         lenCount+=1
                         checkedNeighbors.add(head)
                         head = tuple(map(operator.add, head, direction))
@@ -154,18 +154,18 @@ class Game():
                         flag = True
 
                     if self.isOutOfRange(tail) or tail in enemyMoves:
-                        print("tail oor or enemy")
+                        # print("tail oor or enemy")
                         tailBlock = True
                     elif tail not in playerMoves and not tailBreak:
-                        print("tail not in pm", tail)
+                        # print("tail not in pm", tail)
                         tailBreak = True
                         tail = tuple(map(operator.sub, tail, direction))
-                        print("new tail", tail)
+                        # print("new tail", tail)
                         if tail in checkedMoves:
                             flag = True
 
                     while tail in playerMoves and not flag:
-                        print("tail: ", tail)
+                        # print("tail: ", tail)
                         lenCount+=1
                         checkedNeighbors.add(tail)
                         tail = tuple(map(operator.sub, tail, direction))
@@ -185,7 +185,7 @@ class Game():
                     if flag:
                         continue
 
-                    print("lenCount: ", lenCount)
+                    # print("lenCount: ", lenCount)
                     
                     # add to ranks
                     if not tailBlock and not headBlock:
@@ -195,7 +195,7 @@ class Game():
                     else:
                         moveType = "b"
 
-                    print("moveType", moveType)
+                    # print("moveType", moveType)
 
                     if (lenCount < 5 and lenCount > 1) and moveType != "b":
                         tRank = moveType + str(lenCount)
@@ -209,7 +209,7 @@ class Game():
             
             checkedMoves.append(move)
         
-        print(typeRank)
+        # print(typeRank)
 
         for key in SCORE_RANK:
             score = SCORE_RANK[key] * typeRank[key]
