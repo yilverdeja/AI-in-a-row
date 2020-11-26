@@ -173,8 +173,159 @@ class TestGame(unittest.TestCase):
         self.testGame.makeMove((5, 2), "X")
         self.testGame.makeMove((6, 2), "X")
         self.testGame.makeMove((7, 2), "X")
-        score = 2 * (100) + 5 * (10) # 2 * o3 + 5 * o2 = 250
+        score = 2 * (game.SCORE_RANK["o3"]) + 5 * (game.SCORE_RANK["o2"]) # 2 * o3 + 5 * o2 = 250
         self.assertEqual(self.testGame.getPlayerScore("X"), score)
+    
+    # gets "X"s letter score after a few moves
+    def test_getScore2(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((4, 3), "X")
+        self.testGame.makeMove((4, 4), "X")
+        self.testGame.makeMove((4, 1), "X")
+        self.testGame.makeMove((5, 2), "X")
+        self.testGame.makeMove((6, 2), "X")
+        self.testGame.makeMove((6, 3), "X") # new addition
+        self.testGame.makeMove((7, 2), "X")
+        score = 4 * (game.SCORE_RANK["o3"]) + 5 * (game.SCORE_RANK["o2"]) # 4 * o3 + 5 * o2 = 450
+        self.assertEqual(self.testGame.getPlayerScore("X"), score)
+
+    # include "O"s to close off parts
+    def test_getScore3(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((4, 3), "X")
+        self.testGame.makeMove((4, 4), "X")
+        self.testGame.makeMove((4, 1), "X")
+        self.testGame.makeMove((5, 2), "X")
+        self.testGame.makeMove((6, 2), "X")
+        self.testGame.makeMove((7, 2), "X")
+        self.testGame.makeMove((4, 2), "O") # new addition to block 4, 2
+        score = 1 * (game.SCORE_RANK["c3"]) + 1 * (game.SCORE_RANK["c2"]) + 5 * (game.SCORE_RANK["o2"]) # 1 * c3 + 1 * c2 + 5 * o2
+        self.assertEqual(self.testGame.getPlayerScore("X"), score)
+    
+    # test 4 in a row open
+    def test_getScore4(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "X")
+        scoreX = 1 * (game.SCORE_RANK["o4"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 4 in a row closed
+    def test_getScore5(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "X")
+        self.testGame.makeMove((3, 7), "O")
+        scoreX = 1 * (game.SCORE_RANK["c4"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 4 in a row blocked
+    def test_getScore6(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "X")
+        self.testGame.makeMove((3, 2), "O")
+        self.testGame.makeMove((3, 7), "O")
+        scoreX = 0
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 3 in a row open
+    def test_getScore7(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        scoreX = 1 * (game.SCORE_RANK["o3"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 3 in a row closed
+    def test_getScore8(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "O")
+        scoreX = 1 * (game.SCORE_RANK["c3"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 3 in a row blocked
+    def test_getScore9(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 2), "O")
+        self.testGame.makeMove((3, 6), "O")
+        scoreX = 0
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 2 in a row open
+    def test_getScore10(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        scoreX = 1 * (game.SCORE_RANK["o2"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 2 in a row closed
+    def test_getScore11(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "O")
+        scoreX = 1 * (game.SCORE_RANK["c2"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 2 in a row blocked
+    def test_getScore12(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 2), "O")
+        self.testGame.makeMove((3, 5), "O")
+        scoreX = 0
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test win condition
+    def test_getScore13(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "X")
+        self.testGame.makeMove((3, 7), "X")
+        scoreX = 1 * (game.SCORE_RANK["win"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test win condition
+    def test_getScore14(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "X")
+        self.testGame.makeMove((3, 7), "X")
+        self.testGame.makeMove((3, 8), "O")
+        scoreX = 1 * (game.SCORE_RANK["win"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test win condition
+    def test_getScore15(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 6), "X")
+        self.testGame.makeMove((3, 7), "X")
+        self.testGame.makeMove((3, 8), "O")
+        self.testGame.makeMove((3, 2), "O")
+        scoreX = 1 * (game.SCORE_RANK["win"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
+    
+    # test 4 in a row blocked but gap in middle (should be treated as c4 since it's still possible for a win)
+    def test_getScore16(self):
+        self.testGame.makeMove((3, 3), "X")
+        self.testGame.makeMove((3, 4), "X")
+        self.testGame.makeMove((3, 5), "X")
+        self.testGame.makeMove((3, 7), "X")
+        self.testGame.makeMove((3, 2), "O")
+        self.testGame.makeMove((3, 8), "O")
+        scoreX = 1 * (game.SCORE_RANK["c4"])
+        self.assertEqual(self.testGame.getPlayerScore("X"), scoreX)
 
 if __name__ == "__main__":
     unittest.main()

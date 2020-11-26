@@ -4,6 +4,8 @@ from player import HumanPlayer, AIPlayer
 
 # TODO: don't hardcode in player.py
 BOARD_SIZE = 15
+SCORE_RANK = {"c2": 5, "o2": 10, "c3": 25, "o3": 100, "c4": 1000, "o4": 10000, "win": 100000}
+MOVES_TO_WIN = 5
 
 class Game():
 
@@ -49,10 +51,12 @@ class Game():
             return True
         return False
     
+    # private function to check if the letter is either X or O
     def __checkIfValidLetter(self, letter):
         if letter != "X" and letter != "O":
             raise Exception("Input letter must either be X or O!")
 
+    # private function to sort the moves played on the board when a move is made
     def __sortMoves(self, letter):
         self.__checkIfValidLetter(letter)
         self.moves[letter].sort(key = lambda x: (x[0], x[1]))
@@ -72,117 +76,145 @@ class Game():
     # gets the player score on that current board
     def getPlayerScore(self, letter):
         self.__checkIfValidLetter(letter)
-
-        # c2, o2, c3, o3, c4, o4
-        # scoreRank = [5, 10, 25, 100, 1000, 10000]
-        scoreRank = {"c2": 5, "o2": 10, "c3": 25, "o3": 100, "c4": 1000, "o4": 10000}
-        typeRank = {"c2": 0, "o2": 0, "c3": 0, "o3": 0, "c4": 0, "o4": 0}
+        
+        # typeRank = {"c2": 0, "o2": 0, "c3": 0, "o3": 0, "c4": 0, "o4": 0}
+        typeRank = {"c2": 0, "o2": 0, "c3": 0, "o3": 0, "c4": 0, "o4": 0, "win": 0}
 
         # totalScore
         totalScore = 0
 
+        # determines the moves that have already been checked
+        # will be used to cross check neighboring moves
         checkedMoves = []
+
+        # getting all player moves and enemy moves
         playerMoves = self.moves[letter].copy()
         if letter == "X":
             enemyMoves = self.moves["O"].copy()
         else:
             enemyMoves = self.moves["X"].copy()
 
-        # pops the first value from completed moves and checks if it has any neighbors within completed moves. Once a neighbor is found, and looks further in it's direction. Once that's complete, it gets the length of the move and adds it to the score. Then it keeps going through neighbors until all of them have been visited. Once complete, adds that move into checkedMoves and then pops the next item inside playerMoves. Repeats until playerMoves has a length of 0
-
         while len(playerMoves) > 0:
-            checkMove = playerMoves.pop(0)
-            print("checkmove", checkMove)
-            neighborMoves = self.getNeighbors(checkMove)
+            move = playerMoves.pop(0)
+            neighbors = self.getNeighbors(move)
             checkedNeighbors = set()
-            # print(checkMove, neighborMoves)
-            for neighbor in neighborMoves:
-                
-                # print(neighbor in playerMoves)
-                # print(checkMove, neighbor, playerMoves)
+
+            for neighbor in neighbors:
                 if neighbor in checkedNeighbors:
                     continue
 
                 if neighbor in playerMoves:
-                    direction = self.getDirection(checkMove, neighbor)
-                    neighborCount = 1
-                    moveType = "o" # or "c" or maybe "b" for blocked
+                    direction = self.getDirection(move, neighbor)
 
-                    # head
-                    aPos = tuple(map(operator.add, checkMove, direction))
-                    bPos = tuple(map(operator.add, aPos, direction))
-                    # print("head", aPos, bPos)
+                    lenCount = 1
+                    headBlock = False
+                    tailBlock = False
+                    flag = False
 
-                    foundFlag = aPos in checkedMoves or bPos in checkedMoves
-                    if foundFlag:
-                        print("flag found", checkMove, aPos, bPos)
+                    print(move, neighbor, direction)
+                    
+                    # head search
+                    head = tuple(map(operator.add, move, direction))
+                    headBreak = False
+
+                    if head in checkedMoves:
+                        flag = True
+
+                    if self.isOutOfRange(head) or head in enemyMoves:
+                        headBlock = True
+                    elif head not in playerMoves and not headBreak:
+                        headBreak = True
+                        head = tuple(map(operator.add, head, direction))
+                        if head in checkedMoves:
+                            flag = True
+
+                    while head in playerMoves and not flag:
+                        print("head: ", head)
+                        lenCount+=1
+                        checkedNeighbors.add(head)
+                        head = tuple(map(operator.add, head, direction))
+                        if head in checkedMoves:
+                            flag = True
+                            break
+                        if self.isOutOfRange(head) or head in enemyMoves:
+                            headBlock = True
+                            break
+                        if head not in playerMoves and not headBreak:
+                            headBreak = True
+                            head = tuple(map(operator.add, head, direction))
+                            if head in checkedMoves:
+                                flag = True
+                                break
+                    
+                    # tail search
+                    tail = tuple(map(operator.sub, move, direction))
+                    tailBreak = False
+
+                    if tail in checkedMoves:
+                        flag = True
+
+                    if self.isOutOfRange(tail) or tail in enemyMoves:
+                        print("tail oor or enemy")
+                        tailBlock = True
+                    elif tail not in playerMoves and not tailBreak:
+                        print("tail not in pm", tail)
+                        tailBreak = True
+                        tail = tuple(map(operator.sub, tail, direction))
+                        print("new tail", tail)
+                        if tail in checkedMoves:
+                            flag = True
+
+                    while tail in playerMoves and not flag:
+                        print("tail: ", tail)
+                        lenCount+=1
+                        checkedNeighbors.add(tail)
+                        tail = tuple(map(operator.sub, tail, direction))
+                        if tail in checkedMoves:
+                            flag = True
+                            break
+                        if self.isOutOfRange(tail) or tail in enemyMoves:
+                            tailBlock = True
+                            break
+                        if tail not in playerMoves and not tailBreak:
+                            tailBreak = True
+                            tail = tuple(map(operator.sub, tail, direction))
+                            if tail in checkedMoves:
+                                flag = True
+                                break
+                    
+                    if flag:
                         continue
 
-                    while aPos in playerMoves or bPos in playerMoves:
-                        checkedNeighbors.update([aPos, bPos])
-                        if aPos in playerMoves and bPos in playerMoves:
-                            # print("inc 2 head", checkMove, aPos, bPos)
-                            neighborCount = neighborCount + 2
-                        elif aPos in enemyMoves:
-                            moveType = "c"
-                            # print("escape")
-                            break
-                        else:
-                            neighborCount = neighborCount + 1
-                            # print("inc 1 head", checkMove, aPos, bPos)
-                            if bPos in enemyMoves:
-                                moveType = "c"
-                                # print("escape")
-                                break
-            
-                        aPos = tuple(map(operator.add, bPos, direction))
-                        bPos = tuple(map(operator.add, aPos, direction))
+                    print("lenCount: ", lenCount)
                     
-                    # print("after head")
-                    
-                    # tail
-                    aPos = tuple(map(operator.sub, checkMove, direction))
-                    bPos = tuple(map(operator.sub, aPos, direction))
+                    # add to ranks
+                    if not tailBlock and not headBlock:
+                        moveType = "o"
+                    elif (not tailBlock and headBlock) or (tailBlock and not headBlock):
+                        moveType = "c"
+                    else:
+                        moveType = "b"
 
-                    foundFlag = aPos in checkedMoves or bPos in checkedMoves
-                    if foundFlag:
-                        # print("flag found", checkMove, aPos, bPos)
-                        continue
+                    print("moveType", moveType)
 
-                    while aPos in playerMoves or bPos in playerMoves:
-                        checkedNeighbors.update([aPos, bPos])
-                        if aPos in playerMoves and bPos in playerMoves:
-                            # print("inc 2 tail", checkMove, aPos, bPos)
-                            neighborCount = neighborCount + 2
-                        elif aPos in enemyMoves:
-                            moveType = "c"
-                            # print("escape")
-                            break
-                        else:
-                            neighborCount = neighborCount + 1
-                            # print("inc 1 tail", checkMove, aPos, bPos)
-                            if bPos in enemyMoves:
-                                moveType = "c"
-                                # print("escape")
-                                break
+                    if (lenCount < 5 and lenCount > 1) and moveType != "b":
+                        tRank = moveType + str(lenCount)
+                        typeRank[tRank] += 1
+                    elif lenCount == 4 and moveType == "b" and (tailBreak or headBreak):
+                        typeRank["c4"] += 1
+                    elif lenCount >= 5:
+                        typeRank["win"] += 1
 
-                        aPos = tuple(map(operator.sub, bPos, direction))
-                        bPos = tuple(map(operator.sub, aPos, direction))
-                    
-                    # print("after tail")
-
-                    tRank = moveType + str(neighborCount)
-                    print(tRank)
-                    typeRank[tRank] = typeRank[tRank] + 1
                     checkedNeighbors.add(neighbor)
             
-            checkedMoves.append(checkMove)
+            checkedMoves.append(move)
+        
         print(typeRank)
 
-        for key in scoreRank:
-            score = scoreRank[key] * typeRank[key]
+        for key in SCORE_RANK:
+            score = SCORE_RANK[key] * typeRank[key]
             totalScore = totalScore + score
-            
+
         return totalScore
 
     # gets neighbors a distance of 2 from the coord
@@ -199,14 +231,6 @@ class Game():
                 moveSet.add(tail)
         
         return list(moveSet)
-
-    
-    # def getPlayerScore(self, letter):
-    #     # TODO is there a better way to simplify this
-    #     if letter == "X":
-    #         return 1000*len(xMoves["4"]) + 100*len(xMoves["c4"]) + 50*len(xMoves["3"]) + 25*len(xMoves["c3"]) + 10*len(xMoves["2"]) + 5*len(xMoves["c2"])
-    #     elif letter == "O":
-    #         return 1000*len(oMoves["4"]) + 100*len(oMoves["c4"]) + 50*len(oMoves["3"]) + 25*len(oMoves["c3"]) + 10*len(oMoves["2"]) + 5*len(oMoves["c2"])
 
     def getDirection(self, t1, t2):
         # https://www.geeksforgeeks.org/python-how-to-get-subtraction-of-tuples/
