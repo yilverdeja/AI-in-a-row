@@ -60,16 +60,16 @@ class AIPlayer(Player):
 
         if gameState.winner != None:
             if gameState.winner == maxPlayer:
-                return {"score": 1*(gameState.getNumPosLeft() + 1), "position": None}
+                return {"score": 1*(gameState.getNumPosLeft() + 1)*(gameState.getPlayerScore(maxPlayer)), "position": None}
             elif gameState.winner == minPlayer:
-                return {"score": -1*(gameState.getNumPosLeft() + 1), "position": None}
+                return {"score": -1*(gameState.getNumPosLeft() + 1)*(gameState.getPlayerScore(minPlayer)), "position": None}
         elif depth == 0:
             # Get combinations that each player has on board
-            if isMaximizing:
-                return {"score": 1*gameState.getPlayerScore(maxPlayer), "position": None}
-            else:
-                return {"score": -10*gameState.getPlayerScore(minPlayer), "position": None}
-            pass
+            maxPlayerScore = 1*gameState.getPlayerScore(maxPlayer)
+            minPlayerScore = -1*gameState.getPlayerScore(minPlayer)
+            score = minPlayerScore + maxPlayerScore
+            return {"score": score, "position": None}
+            
         elif gameState.isBoardFull():
             # A tie
             return {"score": 0, "position": None}
@@ -86,6 +86,7 @@ class AIPlayer(Player):
         for posChild in gameState.getPotentialMoves(2):
             gameState.makeMove(posChild, player)
             eval = self.minimax(gameState, depth-1, alpha, beta, not isMaximizing)
+            # print("eval, ", eval)
 
             gameState.undoMove(posChild, player)
             eval['position'] = posChild

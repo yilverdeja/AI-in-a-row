@@ -204,7 +204,7 @@ class Game():
                         typeRank[tRank] += 1
                     elif lenCount == 4 and moveType == "b" and (tailBreak or headBreak):
                         typeRank["c4"] += 1
-                    elif lenCount >= 5:
+                    elif lenCount >= 5 and not tailBreak and not headBreak:
                         typeRank["win"] += 1
 
                     checkedNeighbors.add(neighbor)
@@ -298,7 +298,7 @@ def play(game, playerX, playerY):
 if __name__ == "__main__":
     g = Game()
     playerX = AIPlayer("X")
-    playerO = HumanPlayer("O")
+    playerO = AIPlayer("O")
     play(g, playerX, playerO)
     
     
