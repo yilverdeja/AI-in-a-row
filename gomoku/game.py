@@ -2,7 +2,6 @@ import math
 import operator
 from player import HumanPlayer, AIPlayer
 
-# TODO: don't hardcode in player.py
 BOARD_SIZE = 15
 SCORE_RANK = {"c2": 5, "o2": 10, "c3": 25, "o3": 100, "c4": 1000, "o4": 10000, "win": 100000}
 MOVES_TO_WIN = 5
@@ -74,6 +73,42 @@ class Game():
     # gets the number of positions left on the board
     def getNumPosLeft(self):
         return int(math.pow(BOARD_SIZE, 2)) - len(self.moves["X"]) - len(self.moves["O"])
+    
+    def checkWinner(self, coord, letter):
+        vectors = [(-1, 0), (0, -1), (-1,-1), (1,-1)]
+
+        for vector in vectors:
+            lenCount = 1
+            for a in range(1, 5):
+                head = (coord[0] + a*vector[0], coord[1] + a*vector[1])
+                if self.isOutOfRange(head) or self.board[head[0]][head[1]] != letter:
+                    break
+                lenCount+=1
+                if lenCount >= 5:
+                    return True
+
+            for a in range(1, 5):
+                tail = (coord[0] - vector[0], coord[1] - vector[1])
+                if self.isOutOfRange(tail) or self.board[tail[0]][tail[1]] != letter:
+                    break
+                lenCount+=1
+                if lenCount >= 5:
+                    return True
+            
+            if lenCount >= 5:
+                return True
+            
+        return False
+
+            
+        # for move in allMoves:
+        #     for vector in vectors:
+        #         head = (move[0] + vector[0], move[1] + vector[1])
+        #         tail = (move[0] - vector[0], move[1] - vector[1])
+        #         if not self.isOutOfRange(head) and self.board[head[0]][head[1]] == " ":
+        #             moveSet.add(head)
+        #         if not self.isOutOfRange(tail) and self.board[tail[0]][tail[1]] == " ":
+        #             moveSet.add(tail)
     
     # gets the player score on that current board
     def getPlayerScore(self, letter):
@@ -204,7 +239,7 @@ class Game():
                         typeRank[tRank] += 1
                     elif lenCount == 4 and moveType == "b" and (tailBreak or headBreak):
                         typeRank["c4"] += 1
-                    elif lenCount >= 5 and not tailBreak and not headBreak:
+                    elif lenCount >= 5 and self.checkWinner(move, letter):
                         typeRank["win"] += 1
 
                     checkedNeighbors.add(neighbor)
