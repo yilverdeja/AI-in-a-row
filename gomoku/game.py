@@ -32,7 +32,6 @@ class Game():
             self.board[coord[0]][coord[1]] = letter
             self.moves[letter].append(coord)
             self.__sortMoves(letter)
-            # TODO: check winner instead of using getplayerscore?
             if self.getPlayerScore(letter) >= SCORE_RANK["win"]:
                 self.winner = letter
             return True
@@ -45,7 +44,6 @@ class Game():
         if self.isOutOfRange(coord): return False
         if (self.board[coord[0]][coord[1]] == letter):
             self.moves[letter].remove(coord)
-            # self.__sortMoves(letter) # should already be sorted
             self.board[coord[0]][coord[1]] = " "
             if self.winner != None:
                 self.winner = None
@@ -99,16 +97,6 @@ class Game():
                 return True
             
         return False
-
-            
-        # for move in allMoves:
-        #     for vector in vectors:
-        #         head = (move[0] + vector[0], move[1] + vector[1])
-        #         tail = (move[0] - vector[0], move[1] - vector[1])
-        #         if not self.isOutOfRange(head) and self.board[head[0]][head[1]] == " ":
-        #             moveSet.add(head)
-        #         if not self.isOutOfRange(tail) and self.board[tail[0]][tail[1]] == " ":
-        #             moveSet.add(tail)
     
     # gets the player score on that current board
     def getPlayerScore(self, letter):
