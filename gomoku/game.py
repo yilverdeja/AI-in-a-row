@@ -77,23 +77,23 @@ class Game():
 
         for vector in vectors:
             lenCount = 1
-            for a in range(1, 5):
+            for a in range(1, MOVES_TO_WIN):
                 head = (coord[0] + a*vector[0], coord[1] + a*vector[1])
                 if self.isOutOfRange(head) or self.board[head[0]][head[1]] != letter:
                     break
                 lenCount+=1
-                if lenCount >= 5:
+                if lenCount >= MOVES_TO_WIN:
                     return True
 
-            for a in range(1, 5):
-                tail = (coord[0] - vector[0], coord[1] - vector[1])
+            for a in range(1, MOVES_TO_WIN):
+                tail = (coord[0] - a*vector[0], coord[1] - a*vector[1])
                 if self.isOutOfRange(tail) or self.board[tail[0]][tail[1]] != letter:
                     break
                 lenCount+=1
-                if lenCount >= 5:
+                if lenCount >= MOVES_TO_WIN:
                     return True
             
-            if lenCount >= 5:
+            if lenCount >= MOVES_TO_WIN:
                 return True
             
         return False
@@ -222,12 +222,12 @@ class Game():
 
                     # print("moveType", moveType)
 
-                    if (lenCount < 5 and lenCount > 1) and moveType != "b":
+                    if (lenCount < MOVES_TO_WIN and lenCount > 1) and moveType != "b":
                         tRank = moveType + str(lenCount)
                         typeRank[tRank] += 1
                     elif lenCount == 4 and moveType == "b" and (tailBreak or headBreak):
                         typeRank["c4"] += 1
-                    elif lenCount >= 5 and self.checkWinner(move, letter):
+                    elif lenCount >= MOVES_TO_WIN and self.checkWinner(move, letter):
                         typeRank["win"] += 1
 
                     checkedNeighbors.add(neighbor)
